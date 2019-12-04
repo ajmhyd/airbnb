@@ -1,5 +1,6 @@
 import { Grid } from '@material-ui/core';
 import Link from 'next/link';
+import PropTypes from 'prop-types';
 
 const House = ({ id, picture, rating, reviewsCount, title, type, town }) => (
   <Grid item sm={6}>
@@ -17,5 +18,15 @@ const House = ({ id, picture, rating, reviewsCount, title, type, town }) => (
     </Link>
   </Grid>
 );
+
+House.propTypes = {
+  id: PropTypes.string.isRequired,
+  picture: PropTypes.string.isRequired,
+  rating: PropTypes.number.isRequired,
+  reviewsCount: PropTypes.number.isRequired,
+  title: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  town: PropTypes.string.isRequired,
+};
 
 export default House;
