@@ -1,11 +1,30 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Grid } from '@material-ui/core';
+import { Button, Grid } from '@material-ui/core';
 import DateRangePicker from '../../components/DateRangePicker';
 import houses from '../../data/houses.json';
 import Layout from '../../components/Layout';
 
 const House = ({ house }) => {
-  const { title, picture, type, town, rating, reviewsCount } = house;
+  const { title, picture, type, town, rating, reviewsCount, price } = house;
+  const [dateChosen, setDateChosen] = useState(false);
+  const [numberOfNightsBetweenDates, setNumberOfNightsBetweenDates] = useState(
+    0
+  );
+
+  const calcNumberOfNightsBetweenDates = (startDate, endDate) => {
+    const start = new Date(startDate); // clone
+    const end = new Date(endDate); // clone
+    let dayCount = 0;
+
+    while (end > start) {
+      dayCount += 1;
+      start.setDate(start.getDate() + 1);
+    }
+
+    return dayCount;
+  };
+
   return (
     <Layout title={`${title} | airbnb`}>
       <Grid container direction="row" spacing={2}>
@@ -24,7 +43,25 @@ const House = ({ house }) => {
         <Grid item>
           <aside>
             <h2>Add dates for prices</h2>
-            <DateRangePicker />
+            <DateRangePicker
+              datesChanged={(startDate, endDate) => {
+                setNumberOfNightsBetweenDates(
+                  calcNumberOfNightsBetweenDates(startDate, endDate)
+                );
+                setDateChosen(true);
+              }}
+            />
+            {dateChosen && (
+              <div>
+                <h2>Price per night</h2>
+                <p>${price}</p>
+                <h2>Total price for booking</h2>
+                <p>${(numberOfNightsBetweenDates * price).toFixed(2)}</p>
+                <Button variant="contained" color="primary">
+                  Reserve
+                </Button>
+              </div>
+            )}
           </aside>
         </Grid>
       </Grid>

@@ -1,5 +1,4 @@
 import DayPickerInput from 'react-day-picker/DayPickerInput';
-// import 'react-day-picker/lib/style.css';
 import dateFnsFormat from 'date-fns/format';
 import dateFnsParse from 'date-fns/parse';
 import { DateUtils } from 'react-day-picker';
@@ -31,7 +30,7 @@ const numberOfNightsBetweenDates = (startDate, endDate) => {
   return dayCount;
 };
 
-const DateRangePicker = () => {
+const DateRangePicker = ({ datesChanged }) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
@@ -54,11 +53,12 @@ const DateRangePicker = () => {
           }}
           onDayChange={day => {
             setStartDate(day);
+            const newEndDate = new Date(day);
             if (numberOfNightsBetweenDates(day, endDate) < 1) {
-              const newEndDate = new Date(day);
               newEndDate.setDate(newEndDate.getDate() + 1);
               setEndDate(newEndDate);
             }
+            datesChanged(day, newEndDate);
           }}
         />
       </div>
@@ -82,6 +82,7 @@ const DateRangePicker = () => {
           }}
           onDayChange={day => {
             setEndDate(day);
+            datesChanged(startDate, day);
           }}
         />
       </div>

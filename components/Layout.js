@@ -4,6 +4,7 @@ import Head from 'next/head';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { makeStyles } from '@material-ui/core/styles';
 import Header from './Header';
+import LoginModal from './LoginModal';
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -27,6 +28,7 @@ const Layout = ({ children, title = 'airbnb' }) => {
       <Container maxWidth="xl" className={classes.main}>
         {children}
       </Container>
+      <LoginModal open />
     </>
   );
 };
