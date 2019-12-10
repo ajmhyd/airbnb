@@ -3,7 +3,9 @@ import App from 'next/app';
 import Head from 'next/head';
 import { ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { StoreProvider } from 'easy-peasy';
 import theme from '../src/theme';
+import store from '../store';
 
 export default class MyApp extends App {
   componentDidMount() {
@@ -25,7 +27,9 @@ export default class MyApp extends App {
         <ThemeProvider theme={theme}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
-          <Component {...pageProps} />
+          <StoreProvider store={store}>
+            <Component {...pageProps} />
+          </StoreProvider>
         </ThemeProvider>
       </>
     );

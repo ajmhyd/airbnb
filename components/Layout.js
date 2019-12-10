@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 import Head from 'next/head';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { makeStyles } from '@material-ui/core/styles';
+import { useStoreState, useStoreActions } from 'easy-peasy';
 import Header from './Header';
 import LoginModal from './LoginModal';
+import SignUpModal from './SignUpModal';
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -14,6 +16,18 @@ const useStyles = makeStyles(theme => ({
 
 const Layout = ({ children, title = 'airbnb' }) => {
   const classes = useStyles();
+  const showLoginModal = useStoreState(state => state.modals.showLoginModal);
+  const showRegistrationModal = useStoreState(
+    state => state.modals.showRegistrationModal
+  );
+  const setShowRegistrationModal = useStoreActions(
+    actions => actions.modals.setShowRegistrationModal
+  );
+  const setShowLoginModal = useStoreActions(
+    actions => actions.modals.setShowLoginModal
+  );
+  const setHideModal = useStoreActions(actions => actions.modals.setHideModal);
+
   return (
     <>
       <CssBaseline />
@@ -28,7 +42,16 @@ const Layout = ({ children, title = 'airbnb' }) => {
       <Container maxWidth="xl" className={classes.main}>
         {children}
       </Container>
-      <LoginModal open />
+      <LoginModal
+        open={showLoginModal}
+        showSignUp={() => setShowRegistrationModal()}
+        close={() => setHideModal()}
+      />
+      <SignUpModal
+        open={showRegistrationModal}
+        showLogin={() => setShowLoginModal()}
+        close={() => setHideModal()}
+      />
     </>
   );
 };

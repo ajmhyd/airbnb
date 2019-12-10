@@ -1,11 +1,8 @@
 import {
   Button,
-  Checkbox,
   Dialog,
   Divider,
-  FormControlLabel,
   Grid,
-  Link,
   TextField,
   Typography,
 } from '@material-ui/core';
@@ -44,15 +41,16 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const LoginModal = ({ open, showSignUp, close }) => {
+const SignUpModal = ({ open, showLogin, close }) => {
   const classes = useStyles();
+
   return (
     <Dialog onClose={close} aria-labelledby="simple-dialog-title" open={open}>
       {/* //TODO Turn into button */}
       <CloseIcon className={classes.close} />
       <div className={classes.paper}>
         <Typography component="h1" variant="h4">
-          Log in
+          Sign Up
         </Typography>
 
         <form className={classes.form} noValidate>
@@ -79,9 +77,15 @@ const LoginModal = ({ open, showSignUp, close }) => {
             id="password"
             autoComplete="current-password"
           />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Enter password again"
+            type="password2"
+            id="passwordconfirmation"
           />
           <Button
             type="submit"
@@ -90,25 +94,16 @@ const LoginModal = ({ open, showSignUp, close }) => {
             color="primary"
             className={classes.submit}
           >
-            Log In
+            Sign Up
           </Button>
-          <Link href="#" variant="body2">
-            <Typography
-              color="secondary"
-              align="center"
-              className={classes.forgot}
-            >
-              Forgot password?
-            </Typography>
-          </Link>
           <Divider />
           <Grid container direction="row" className={classes.signUp}>
             <Typography className={classes.noAccount}>
               {' '}
-              Don't have an account?&nbsp;&nbsp;
+              Already have an airbnb account?&nbsp;&nbsp;
             </Typography>
-            <Button onClick={showSignUp}>
-              <Typography color="secondary">Sign Up</Typography>
+            <Button onClick={showLogin}>
+              <Typography color="secondary">Log in</Typography>
             </Button>
           </Grid>
         </form>
@@ -117,10 +112,10 @@ const LoginModal = ({ open, showSignUp, close }) => {
   );
 };
 
-LoginModal.propTypes = {
+SignUpModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  showSignUp: PropTypes.func.isRequired,
+  showLogin: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired,
 };
 
-export default LoginModal;
+export default SignUpModal;

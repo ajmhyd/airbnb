@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Link from 'next/link';
+import { useStoreActions } from 'easy-peasy';
 
 const useStyles = makeStyles(theme => ({
   '@global': {
@@ -34,6 +35,12 @@ const useStyles = makeStyles(theme => ({
 
 const Header = () => {
   const classes = useStyles();
+  const setShowLoginModal = useStoreActions(
+    actions => actions.modals.setShowLoginModal
+  );
+  const setShowRegistrationModal = useStoreActions(
+    actions => actions.modals.setShowRegistrationModal
+  );
   return (
     <AppBar
       position="static"
@@ -52,12 +59,15 @@ const Header = () => {
           </Button>
         </Link>
         <nav className={classes.nav}>
-          <Link href="/register">
-            <a className={classes.a}>Sign Up</a>
-          </Link>
-          <Link href="/login">
-            <a className={classes.a}>Log In</a>
-          </Link>
+          <Button
+            className={classes.a}
+            onClick={() => setShowRegistrationModal()}
+          >
+            Sign Up
+          </Button>
+          <Button className={classes.a} onClick={() => setShowLoginModal()}>
+            Log In
+          </Button>
         </nav>
       </Toolbar>
     </AppBar>
