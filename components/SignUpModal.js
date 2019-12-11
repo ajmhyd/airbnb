@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Button,
   Dialog,
@@ -9,6 +10,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import CloseIcon from '@material-ui/icons/Close';
+import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -43,6 +45,16 @@ const useStyles = makeStyles(theme => ({
 
 const SignUpModal = ({ open, showLogin, close }) => {
   const classes = useStyles();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordconfirmation, setPasswordconfirmation] = useState('');
+  const submit = async () => {
+    const response = await axios.post('/api/auth/register', {
+      email,
+      password,
+      passwordconfirmation,
+    });
+  };
 
   return (
     <Dialog onClose={close} aria-labelledby="simple-dialog-title" open={open}>
@@ -53,7 +65,14 @@ const SignUpModal = ({ open, showLogin, close }) => {
           Sign Up
         </Typography>
 
-        <form className={classes.form} noValidate>
+        <form
+          className={classes.form}
+          onSubmit={e => {
+            e.preventDefault();
+          }}
+          id="signUp"
+          // noValidate
+        >
           <Divider />
           <TextField
             variant="outlined"
@@ -64,7 +83,9 @@ const SignUpModal = ({ open, showLogin, close }) => {
             label="Email Address"
             name="email"
             autoComplete="email"
+            type="email"
             autoFocus
+            onChange={e => setEmail(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -76,6 +97,7 @@ const SignUpModal = ({ open, showLogin, close }) => {
             type="password"
             id="password"
             autoComplete="current-password"
+            onChange={e => setPassword(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -84,8 +106,9 @@ const SignUpModal = ({ open, showLogin, close }) => {
             fullWidth
             name="password"
             label="Enter password again"
-            type="password2"
+            type="password"
             id="passwordconfirmation"
+            onChange={e => setPasswordconfirmation(e.target.value)}
           />
           <Button
             type="submit"
@@ -93,6 +116,8 @@ const SignUpModal = ({ open, showLogin, close }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={submit}
+            form="signUp"
           >
             Sign Up
           </Button>
