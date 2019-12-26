@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -12,6 +13,8 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import CloseIcon from '@material-ui/icons/Close';
+import axios from 'axios';
+import { useStoreActions } from 'easy-peasy';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -46,6 +49,27 @@ const useStyles = makeStyles(theme => ({
 
 const LoginModal = ({ open, showSignUp, close }) => {
   const classes = useStyles();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const setUser = useStoreActions(actions => actions.user.setUser);
+  const setHideModal = useStoreActions(actions => actions.modals.setHideModal);
+
+  const submit = async () => {
+    try {
+      const response = await axios.post('/api/auth/login', {
+        email,
+        password,
+      });
+      if (response.data.status === 'error') {
+        alert(response.data.message);
+        return;
+      }
+      setUser(email);
+      setHideModal();
+    } catch (error) {
+      alert(error.response.data.message);
+    }
+  };
   return (
     <Dialog onClose={close} aria-labelledby="simple-dialog-title" open={open}>
       {/* //TODO Turn into button */}
@@ -55,7 +79,13 @@ const LoginModal = ({ open, showSignUp, close }) => {
           Log in
         </Typography>
 
-        <form className={classes.form} noValidate>
+        <form
+          className={classes.form}
+          onSubmit={e => {
+            e.preventDefault();
+          }}
+          id="login"
+        >
           <Divider />
           <TextField
             variant="outlined"
@@ -67,6 +97,7 @@ const LoginModal = ({ open, showSignUp, close }) => {
             name="email"
             autoComplete="email"
             autoFocus
+            onChange={e => setEmail(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -78,6 +109,7 @@ const LoginModal = ({ open, showSignUp, close }) => {
             type="password"
             id="password"
             autoComplete="current-password"
+            onChange={e => setPassword(e.target.value)}
           />
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
@@ -89,6 +121,8 @@ const LoginModal = ({ open, showSignUp, close }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={submit}
+            form="login"
           >
             Log In
           </Button>

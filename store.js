@@ -17,4 +17,10 @@ export default createStore({
       state.showRegistrationModal = false;
     }),
   },
+  user: {
+    user: null,
+    setUser: action((state, payload) => {
+      state.user = payload;
+    }),
+  },
 });

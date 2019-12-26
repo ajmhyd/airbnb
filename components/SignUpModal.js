@@ -11,6 +11,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import CloseIcon from '@material-ui/icons/Close';
 import axios from 'axios';
+import { useStoreActions } from 'easy-peasy';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -48,12 +49,24 @@ const SignUpModal = ({ open, showLogin, close }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordconfirmation, setPasswordconfirmation] = useState('');
+  const setUser = useStoreActions(actions => actions.user.setUser);
+  const setHideModal = useStoreActions(actions => actions.modals.setHideModal);
   const submit = async () => {
-    const response = await axios.post('/api/auth/register', {
-      email,
-      password,
-      passwordconfirmation,
-    });
+    try {
+      const response = await axios.post('/api/auth/register', {
+        email,
+        password,
+        passwordconfirmation,
+      });
+      if (response.data.status === 'error') {
+        alert(response.data.message);
+        return;
+      }
+      setUser(email);
+      setHideModal();
+    } catch (error) {
+      alert(error.response.data.message);
+    }
   };
 
   return (

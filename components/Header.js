@@ -1,7 +1,8 @@
-import { AppBar, Toolbar, Button } from '@material-ui/core';
+import { AppBar, Toolbar, Button, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Link from 'next/link';
-import { useStoreActions } from 'easy-peasy';
+import { useStoreActions, useStoreState } from 'easy-peasy';
+import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
   '@global': {
@@ -41,6 +42,8 @@ const Header = () => {
   const setShowRegistrationModal = useStoreActions(
     actions => actions.modals.setShowRegistrationModal
   );
+  const user = useStoreState(state => state.user.user);
+  const setUser = useStoreActions(actions => actions.user.setUser);
   return (
     <AppBar
       position="static"
@@ -59,15 +62,32 @@ const Header = () => {
           </Button>
         </Link>
         <nav className={classes.nav}>
-          <Button
-            className={classes.a}
-            onClick={() => setShowRegistrationModal()}
-          >
-            Sign Up
-          </Button>
-          <Button className={classes.a} onClick={() => setShowLoginModal()}>
-            Log In
-          </Button>
+          {user ? (
+            <>
+              <Typography>{user}</Typography>
+              <Button
+                className={classes.a}
+                onClick={async () => {
+                  await axios.post('/api/auth/logout');
+                  setUser(null);
+                }}
+              >
+                Log Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                className={classes.a}
+                onClick={() => setShowRegistrationModal()}
+              >
+                Sign Up
+              </Button>
+              <Button className={classes.a} onClick={() => setShowLoginModal()}>
+                Log In
+              </Button>
+            </>
+          )}
         </nav>
       </Toolbar>
     </AppBar>
