@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Grid } from '@material-ui/core';
+import fetch from 'isomorphic-unfetch';
 import DateRangePicker from '../../components/DateRangePicker';
-import houses from '../../data/houses.json';
 import Layout from '../../components/Layout';
 
 const House = ({ house }) => {
-  const { title, picture, type, town, rating, reviewsCount, price } = house;
+  const {
+    title,
+    picture,
+    type,
+    town,
+    rating,
+    reviewsCount,
+    reviews,
+    price,
+  } = house;
   const [dateChosen, setDateChosen] = useState(false);
   const [numberOfNightsBetweenDates, setNumberOfNightsBetweenDates] = useState(
     0
@@ -25,6 +34,8 @@ const House = ({ house }) => {
     return dayCount;
   };
 
+  // console.log(house);
+
   return (
     <Layout title={`${title} | airbnb`}>
       <Grid container direction="row" spacing={2}>
@@ -35,9 +46,19 @@ const House = ({ house }) => {
               {type} - {town}
             </p>
             <p>{title}</p>
-            <p>
-              {rating} ({reviewsCount})
-            </p>
+            {reviewsCount ? (
+              <div classNames="reviews">
+                <h3>{reviewsCount} reviewsCount</h3>
+                {reviews.map((review, index) => (
+                  <div key={index}>
+                    <p>{new Date(review.createdAt).toDateString()}</p>
+                    <p>{review.comment}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <></>
+            )}
           </article>
         </Grid>
         <Grid item>
@@ -69,9 +90,11 @@ const House = ({ house }) => {
   );
 };
 
-House.getInitialProps = ({ query }) => {
+House.getInitialProps = async ({ query }) => {
   const { id } = query;
-  return { house: houses.filter(house => house.id === id)[0] };
+  const res = await fetch(`http://localhost:3000/api/houses/${id}`);
+  const house = await res.json();
+  return { house };
 };
 
 House.propTypes = {

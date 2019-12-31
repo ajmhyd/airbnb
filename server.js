@@ -11,7 +11,14 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+
 const User = require('./models/user');
+const House = require('./models/house');
+const Review = require('./models/review');
+
+User.sync({ alter: true });
+House.sync({ alter: true });
+Review.sync({ alter: true });
 
 const sequelize = require('./database.js');
 
@@ -129,7 +136,6 @@ nextApp.prepare().then(() => {
 
   server.post('/api/auth/login', async (req, res) => {
     passport.authenticate('local', (err, user, info) => {
-      console.log(user);
       if (err) {
         res.statusCode = 500;
         res.send(
@@ -172,6 +178,39 @@ nextApp.prepare().then(() => {
         );
       });
     })(req, res, next);
+  });
+
+  server.get('/api/houses', (req, res) => {
+    House.findAndCountAll().then(result => {
+      const houses = result.rows.map(house => house.dataValues);
+
+      res.status(200).send(JSON.stringify(houses));
+    });
+  });
+
+  server.get('/api/houses/:id', (req, res) => {
+    const { id } = req.params;
+
+    House.findByPk(id).then(house => {
+      // console.log(house);
+      if (house) {
+        Review.findAndCountAll({
+          where: {
+            houseId: house.id,
+          },
+        }).then(reviews => {
+          console.log(reviews);
+          house.dataValues.reviews = reviews.rows.map(
+            review => review.dataValues
+          );
+          house.dataValues.reviewsCount = reviews.count;
+        });
+        console.log(house.dataValues);
+        res.status(200).send(JSON.stringify(house.dataValues));
+      } else {
+        res.status(400).send(JSON.stringify({ message: 'Not found' }));
+      }
+    });
   });
 
   server.all('*', (req, res) => handle(req, res));

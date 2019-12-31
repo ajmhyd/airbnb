@@ -10,7 +10,12 @@ import store from '../store';
 export default class MyApp extends App {
   static async getInitialProps({ Component, ctx }) {
     let user = null;
-    if (ctx.req.session.passport.user) {
+    if (
+      ctx.req &&
+      ctx.req.session &&
+      ctx.req.session.passport &&
+      ctx.req.session.passport.user
+    ) {
       user = ctx.req.session.passport.user;
     }
     return {
