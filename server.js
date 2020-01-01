@@ -192,21 +192,18 @@ nextApp.prepare().then(() => {
     const { id } = req.params;
 
     House.findByPk(id).then(house => {
-      // console.log(house);
       if (house) {
         Review.findAndCountAll({
           where: {
             houseId: house.id,
           },
         }).then(reviews => {
-          console.log(reviews);
           house.dataValues.reviews = reviews.rows.map(
             review => review.dataValues
           );
           house.dataValues.reviewsCount = reviews.count;
+          res.status(200).send(JSON.stringify(house.dataValues));
         });
-        console.log(house.dataValues);
-        res.status(200).send(JSON.stringify(house.dataValues));
       } else {
         res.status(400).send(JSON.stringify({ message: 'Not found' }));
       }

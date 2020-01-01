@@ -2,24 +2,20 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Grid } from '@material-ui/core';
 import fetch from 'isomorphic-unfetch';
+import { useStoreActions, useStoreState } from 'easy-peasy';
 import DateRangePicker from '../../components/DateRangePicker';
 import Layout from '../../components/Layout';
 
 const House = ({ house }) => {
-  const {
-    title,
-    picture,
-    type,
-    town,
-    rating,
-    reviewsCount,
-    reviews,
-    price,
-  } = house;
+  const { title, picture, type, town, reviewsCount, reviews, price } = house;
   const [dateChosen, setDateChosen] = useState(false);
   const [numberOfNightsBetweenDates, setNumberOfNightsBetweenDates] = useState(
     0
   );
+  const setShowLoginModal = useStoreActions(
+    actions => actions.modals.setShowLoginModal
+  );
+  const user = useStoreState(state => state.user.user);
 
   const calcNumberOfNightsBetweenDates = (startDate, endDate) => {
     const start = new Date(startDate); // clone
@@ -34,7 +30,9 @@ const House = ({ house }) => {
     return dayCount;
   };
 
-  // console.log(house);
+  const reserve = async () => {
+    // todo
+  };
 
   return (
     <Layout title={`${title} | airbnb`}>
@@ -47,8 +45,8 @@ const House = ({ house }) => {
             </p>
             <p>{title}</p>
             {reviewsCount ? (
-              <div classNames="reviews">
-                <h3>{reviewsCount} reviewsCount</h3>
+              <div className="reviews">
+                <h3>{reviewsCount} Reviews</h3>
                 {reviews.map((review, index) => (
                   <div key={index}>
                     <p>{new Date(review.createdAt).toDateString()}</p>
@@ -78,9 +76,19 @@ const House = ({ house }) => {
                 <p>${price}</p>
                 <h2>Total price for booking</h2>
                 <p>${(numberOfNightsBetweenDates * price).toFixed(2)}</p>
-                <Button variant="contained" color="primary">
-                  Reserve
-                </Button>
+                {user ? (
+                  <Button variant="contained" color="primary" onClick={reserve}>
+                    Reserve
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setShowLoginModal()}
+                  >
+                    Log in to Reserve
+                  </Button>
+                )}
               </div>
             )}
           </aside>
