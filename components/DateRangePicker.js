@@ -3,6 +3,7 @@ import dateFnsFormat from 'date-fns/format';
 import dateFnsParse from 'date-fns/parse';
 import { DateUtils } from 'react-day-picker';
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const format = 'dd MMM yyyy';
 const today = new Date();
@@ -30,9 +31,11 @@ const numberOfNightsBetweenDates = (startDate, endDate) => {
   return dayCount;
 };
 
-const DateRangePicker = ({ datesChanged }) => {
+const DateRangePicker = ({ datesChanged, bookedDates }) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+
+  bookedDates = bookedDates.map(date => new Date(date));
 
   return (
     <>
@@ -46,9 +49,12 @@ const DateRangePicker = ({ datesChanged }) => {
           placeholder={`${dateFnsFormat(new Date(), format)}`}
           dayPickerProps={{
             modifiers: {
-              disabled: {
-                before: new Date(),
-              },
+              disabled: [
+                ...bookedDates,
+                {
+                  before: new Date(),
+                },
+              ],
             },
           }}
           onDayChange={day => {
@@ -74,6 +80,7 @@ const DateRangePicker = ({ datesChanged }) => {
             modifiers: {
               disabled: [
                 startDate,
+                ...bookedDates,
                 {
                   before: startDate,
                 },
@@ -88,6 +95,11 @@ const DateRangePicker = ({ datesChanged }) => {
       </div>
     </>
   );
+};
+
+DateRangePicker.propTypes = {
+  datesChanged: PropTypes.bool.isRequired,
+  bookedDates: PropTypes.array.isRequired,
 };
 
 export default DateRangePicker;

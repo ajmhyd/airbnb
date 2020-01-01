@@ -3,35 +3,92 @@ import PropTypes from 'prop-types';
 import { Button, Grid } from '@material-ui/core';
 import fetch from 'isomorphic-unfetch';
 import { useStoreActions, useStoreState } from 'easy-peasy';
+import axios from 'axios';
 import DateRangePicker from '../../components/DateRangePicker';
 import Layout from '../../components/Layout';
 
-const House = ({ house }) => {
+const calcNumberOfNightsBetweenDates = (startDate, endDate) => {
+  const start = new Date(startDate); // clone
+  const end = new Date(endDate); // clone
+  let dayCount = 0;
+
+  while (end > start) {
+    dayCount += 1;
+    start.setDate(start.getDate() + 1);
+  }
+
+  return dayCount;
+};
+
+const getBookedDates = async houseId => {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/api/houses/booked',
+      {
+        houseId,
+      }
+    );
+    if (response.data.status === 'error') {
+      alert(response.data.message);
+      return;
+    }
+    return response.data.dates;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const canReserve = async (houseId, startDate, endDate) => {
+  try {
+    const houseId = house.id;
+    const response = await axios.post(
+      'http://localhost:3000/api/houses/check',
+      { houseId, startDate, endDate }
+    );
+    if (response.data.status === 'error') {
+      alert(response.data.message);
+      return;
+    }
+
+    if (response.data.message === 'busy') return false;
+    return true;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const House = ({ house, bookedDates }) => {
   const { title, picture, type, town, reviewsCount, reviews, price } = house;
   const [dateChosen, setDateChosen] = useState(false);
   const [numberOfNightsBetweenDates, setNumberOfNightsBetweenDates] = useState(
     0
   );
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
   const setShowLoginModal = useStoreActions(
     actions => actions.modals.setShowLoginModal
   );
   const user = useStoreState(state => state.user.user);
 
-  const calcNumberOfNightsBetweenDates = (startDate, endDate) => {
-    const start = new Date(startDate); // clone
-    const end = new Date(endDate); // clone
-    let dayCount = 0;
-
-    while (end > start) {
-      dayCount += 1;
-      start.setDate(start.getDate() + 1);
-    }
-
-    return dayCount;
-  };
-
   const reserve = async () => {
-    // todo
+    if (!(await canReserve(house.id, startDate, endDate))) {
+      alert('The dates chosen are not valid');
+      return;
+    }
+    try {
+      const response = await axios.post('/api/houses/reserve', {
+        houseId: house.id,
+        startDate,
+        endDate,
+      });
+      if (response.data.status === 'error') {
+        alert(response.data.message);
+        return;
+      }
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -68,7 +125,10 @@ const House = ({ house }) => {
                   calcNumberOfNightsBetweenDates(startDate, endDate)
                 );
                 setDateChosen(true);
+                setStartDate(startDate);
+                setEndDate(endDate);
               }}
+              bookedDates={bookedDates}
             />
             {dateChosen && (
               <div>
@@ -102,10 +162,13 @@ House.getInitialProps = async ({ query }) => {
   const { id } = query;
   const res = await fetch(`http://localhost:3000/api/houses/${id}`);
   const house = await res.json();
-  return { house };
+
+  const bookedDates = await getBookedDates(id);
+  return { house, bookedDates };
 };
 
 House.propTypes = {
   house: PropTypes.object.isRequired,
+  bookedDates: PropTypes.array.isRequired,
 };
 export default House;
