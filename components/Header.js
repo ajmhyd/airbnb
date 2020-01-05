@@ -44,6 +44,7 @@ const Header = () => {
   );
   const user = useStoreState(state => state.user.user);
   const setUser = useStoreActions(actions => actions.user.setUser);
+
   return (
     <AppBar
       position="static"

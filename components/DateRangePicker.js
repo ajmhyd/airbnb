@@ -4,6 +4,7 @@ import dateFnsParse from 'date-fns/parse';
 import { DateUtils } from 'react-day-picker';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import Head from 'next/head';
 
 const format = 'dd MMM yyyy';
 const today = new Date();
@@ -39,6 +40,12 @@ const DateRangePicker = ({ datesChanged, bookedDates }) => {
 
   return (
     <>
+      <Head>
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/react-day-picker/lib/style.css"
+        />
+      </Head>
       <div>
         <label>From:</label>
         <DayPickerInput

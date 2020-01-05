@@ -12,6 +12,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const { Op } = require('sequelize');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const User = require('./models/user');
 const House = require('./models/house');
@@ -229,21 +230,8 @@ nextApp.prepare().then(() => {
   };
 
   server.post('/api/houses/reserve', async (req, res) => {
-    const { startDate, endDate, houseId } = req.body;
+    const { startDate, endDate, houseId, sessionId } = req.body;
 
-    if (!req.session.passport) {
-      res
-        .status(403)
-        .send(JSON.stringify({ status: 'error', message: 'Unauthorized' }));
-    }
-    if (!(await canBookThoseDates(houseId, startDate, endDate))) {
-      res.status(500).send(
-        JSON.stringify({
-          status: 'error',
-          message: 'House is already booked',
-        })
-      );
-    }
     const userEmail = req.session.passport.user;
     User.findOne({ where: { email: userEmail } }).then(user => {
       Booking.create({
@@ -251,6 +239,7 @@ nextApp.prepare().then(() => {
         userId: user.id,
         startDate,
         endDate,
+        sessionId,
       }).then(() => {
         res
           .status(200)
@@ -313,6 +302,77 @@ nextApp.prepare().then(() => {
       message: 'ok',
       dates: bookedDates,
     });
+  });
+
+  server.post('/api/stripe/session', async (req, res) => {
+    const { amount } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          name: 'Booking house on Airbnb clone',
+          amount: amount * 100,
+          currency: 'usd',
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.BASE_URL}/bookings`,
+      cancel_url: `${process.env.BASE_URL}/bookings`,
+    });
+
+    res.status(200).send(
+      JSON.stringify({
+        status: 'success',
+        sessionId: session.id,
+        stripePublicKey: process.env.STRIPE_PUBLIC_KEY,
+      })
+    );
+  });
+
+  server.post('/api/stripe/webhook', async (req, res) => {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
+    } catch (err) {
+      res.status(400).send(
+        JSON.stringify({
+          status: 'success',
+          message: `Webhook Error: ${err.message}`,
+        })
+      );
+      console.log(err.message);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const sessionId = event.data.object.id;
+
+      try {
+        Booking.update({ paid: true }, { where: { sessionId } });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    res.status(200).send(JSON.stringify({ recieved: true }));
+  });
+
+  server.post('/api/bookings/clean', (req, res) => {
+    Booking.destroy({
+      where: {
+        paid: false,
+      },
+    });
+
+    res.status(200).send(
+      JSON.stringify({
+        status: 'success',
+        message: 'ok',
+      })
+    );
   });
 
   server.all('*', (req, res) => handle(req, res));

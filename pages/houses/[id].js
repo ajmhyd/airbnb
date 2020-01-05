@@ -40,7 +40,6 @@ const getBookedDates = async houseId => {
 
 const canReserve = async (houseId, startDate, endDate) => {
   try {
-    const houseId = house.id;
     const response = await axios.post(
       'http://localhost:3000/api/houses/check',
       { houseId, startDate, endDate }
@@ -58,7 +57,16 @@ const canReserve = async (houseId, startDate, endDate) => {
 };
 
 const House = ({ house, bookedDates }) => {
-  const { title, picture, type, town, reviewsCount, reviews, price } = house;
+  const {
+    title,
+    picture,
+    type,
+    town,
+    reviewsCount,
+    reviews,
+    price,
+    id,
+  } = house;
   const [dateChosen, setDateChosen] = useState(false);
   const [numberOfNightsBetweenDates, setNumberOfNightsBetweenDates] = useState(
     0
@@ -71,21 +79,38 @@ const House = ({ house, bookedDates }) => {
   const user = useStoreState(state => state.user.user);
 
   const reserve = async () => {
-    if (!(await canReserve(house.id, startDate, endDate))) {
+    if (!(await canReserve(id, startDate, endDate))) {
       alert('The dates chosen are not valid');
       return;
     }
     try {
-      const response = await axios.post('/api/houses/reserve', {
+      const sessionResponse = await axios.post('/api/stripe/session', {
+        amount: price * numberOfNightsBetweenDates,
+      });
+      if (sessionResponse.data.status === 'error') {
+        alert(sessionResponse.data.message);
+        return;
+      }
+
+      const { sessionId } = sessionResponse.data;
+      const { stripePublicKey } = sessionResponse.data;
+
+      const reserveResponse = await axios.post('/api/houses/reserve', {
         houseId: house.id,
         startDate,
         endDate,
+        sessionId,
       });
-      if (response.data.status === 'error') {
-        alert(response.data.message);
+      if (reserveResponse.data.status === 'error') {
+        alert(reserveResponse.data.message);
         return;
       }
-      console.log(response.data);
+
+      const stripe = Stripe(stripePublicKey);
+      const { error } = await stripe.redirectToCheckout({
+        sessionId,
+      });
+      console.log(reserveResponse.data);
     } catch (error) {
       console.log(error);
     }
