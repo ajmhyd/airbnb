@@ -101,6 +101,7 @@ const House = ({ house, bookedDates }) => {
         endDate,
         sessionId,
       });
+
       if (reserveResponse.data.status === 'error') {
         alert(reserveResponse.data.message);
         return;

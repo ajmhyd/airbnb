@@ -360,6 +360,37 @@ nextApp.prepare().then(() => {
     res.status(200).send(JSON.stringify({ recieved: true }));
   });
 
+  server.get('/api/bookings/list', async (req, res) => {
+    if (!req.session.passport || !req.session.passport.user) {
+      res
+        .status(403)
+        .send(JSON.stringify({ status: 'error', message: 'Unauthorized' }));
+    }
+
+    const userEmail = req.session.passport.user;
+    const user = await User.findOne({ where: { email: userEmail } });
+    Booking.findAndCountAll({
+      where: {
+        paid: true,
+        userId: user.id,
+        endDate: {
+          [Op.gte]: new Date(),
+        },
+      },
+      order: [['startDate', 'ASC']],
+    }).then(async result => {
+      const bookings = await Promise.all(
+        result.rows.map(async booking => {
+          const data = {};
+          data.booking = booking.dataValues;
+          data.house = (await House.findByPk(data.booking.houseId)).dataValues;
+          return data;
+        })
+      );
+      res.status(200).send(JSON.stringify(bookings));
+    });
+  });
+
   server.post('/api/bookings/clean', (req, res) => {
     Booking.destroy({
       where: {
@@ -373,6 +404,48 @@ nextApp.prepare().then(() => {
         message: 'ok',
       })
     );
+  });
+
+  server.get('/api/host/list', async (req, res) => {
+    if (!req.session.passport || !req.session.passport.user) {
+      res
+        .status(403)
+        .send(JSON.stringify({ status: 'error', message: 'Unauthorized' }));
+    }
+
+    const userEmail = req.session.passport.user;
+    const user = await User.findOne({ where: { email: userEmail } });
+
+    const houses = await House.findAll({
+      where: {
+        house: user.id,
+      },
+    });
+
+    const houseIds = houses.map(house => house.dataValues.id);
+
+    const bookingsData = await Booking.findAll({
+      where: {
+        paid: true,
+        houseId: {
+          [Op.in]: houseIds,
+        },
+        endDate: {
+          [Op.gte]: new Date(),
+        },
+      },
+      order: [['startDate', 'ASC']],
+    });
+
+    const bookings = await Promise.all(
+      bookingsData.map(async booking => ({
+        booking: booking.dataValues,
+        house: houses.filter(
+          house => house.dataValues.id === booking.dataValues.houseId
+        )[0].dataValues,
+      }))
+    );
+    res.status(200).send(JSON.stringify({ bookings, houses }));
   });
 
   server.all('*', (req, res) => handle(req, res));

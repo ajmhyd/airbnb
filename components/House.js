@@ -20,10 +20,10 @@ const House = ({ id, picture, rating, reviewsCount, title, type, town }) => (
 );
 
 House.propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
   picture: PropTypes.string.isRequired,
-  rating: PropTypes.number.isRequired,
-  reviewsCount: PropTypes.number.isRequired,
+  rating: PropTypes.number,
+  reviewsCount: PropTypes.number,
   title: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   town: PropTypes.string.isRequired,

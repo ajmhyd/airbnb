@@ -66,6 +66,12 @@ const Header = () => {
           {user ? (
             <>
               <Typography>{user}</Typography>
+              <Link href="/bookings">
+                <Button className={classes.a}>Bookings</Button>
+              </Link>
+              <Link href="/host">
+                <Button className={classes.a}>Your Houses</Button>
+              </Link>
               <Button
                 className={classes.a}
                 onClick={async () => {
